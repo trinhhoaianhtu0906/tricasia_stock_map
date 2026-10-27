@@ -1,0 +1,195 @@
+.o_tricasia_stock_map {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: $o-view-background-color;
+    outline: none;
+
+    .o_tsm_toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+        border-bottom: 1px solid $border-color;
+
+        .o_tsm_warehouse { width: auto; min-width: 180px; }
+        .o_tsm_search { width: 200px; }
+        .o_tsm_category { width: auto; max-width: 260px; }
+        .o_tsm_toolbar_end { display: flex; gap: 8px; margin-left: auto; }
+    }
+
+    .o_tsm_empty {
+        padding: 48px 16px;
+        text-align: center;
+    }
+
+    .o_tsm_body {
+        display: flex;
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+
+    .o_tsm_palette, .o_tsm_panel {
+        flex: 0 0 220px;
+        padding: 12px;
+        overflow-y: auto;
+        border-right: 1px solid $border-color;
+
+        label { display: block; margin-bottom: 8px; font-size: 0.9em; }
+    }
+    .o_tsm_panel {
+        border-right: none;
+        border-left: 1px solid $border-color;
+    }
+    .o_tsm_table { flex-basis: 380px; }
+    .o_tsm_palette_title {
+        margin-bottom: 8px;
+        font-weight: bold;
+        color: $text-muted;
+        font-size: 0.85em;
+        text-transform: uppercase;
+    }
+    .o_tsm_palette_item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 8px;
+        margin-bottom: 4px;
+        border: 1px solid $border-color;
+        border-radius: 4px;
+        cursor: grab;
+        user-select: none;
+
+        &:hover { background: $gray-100; }
+        .o_tsm_swatch { width: 18px; height: 12px; border-radius: 2px; border: 1px solid #8a8a85; }
+        &.o_tsm_rack .o_tsm_swatch { background: #ffffff; border-color: #2a78d6; }
+        &.o_tsm_pallet .o_tsm_swatch { width: 12px; background: #e9d6bd; border-color: #8a5a2b; }
+        &.o_tsm_zone .o_tsm_swatch { background: #e7f0fc; border-style: dashed; border-color: #2a78d6; }
+        &.o_tsm_aisle .o_tsm_swatch { background: #f7f6f3; }
+        &.o_tsm_wall .o_tsm_swatch { background: #5f5e5a; }
+        &.o_tsm_door .o_tsm_swatch { background: #fbe9c8; border-color: #b8860b; }
+        &.o_tsm_text .o_tsm_swatch { border-style: dotted; }
+    }
+    .o_tsm_size { margin-bottom: 8px; }
+    .o_tsm_coords {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0 8px;
+    }
+    .o_tsm_panel_buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .o_tsm_canvas {
+        position: relative;
+        flex: 1 1 auto;
+        overflow: auto;
+        padding: 16px;
+    }
+    .o_tsm_svg {
+        display: block;
+        width: 100%;
+        max-height: calc(100% - 40px);
+        touch-action: none;
+        user-select: none;
+    }
+    .o_tsm_floor { fill: #ffffff; stroke: #c9c8c3; stroke-width: 1; }
+    .o_tsm_grid_line { fill: none; stroke: #ecebe7; stroke-width: 1; }
+
+    // Shapes: thin strokes, the heat fill carries the magnitude
+    .o_tsm_shape_body { fill: #ffffff; stroke: #8a8a85; stroke-width: 1; }
+    .o_tsm_rack .o_tsm_shape_body { stroke: #6c6b67; }
+    .o_tsm_pallet .o_tsm_shape_body { stroke: #8a5a2b; }
+    .o_tsm_zone .o_tsm_shape_body { fill-opacity: 0.45; stroke-dasharray: 6 3; }
+    .o_tsm_aisle .o_tsm_shape_body { fill: #f7f6f3; stroke: none; }
+    .o_tsm_wall .o_tsm_shape_body { fill: #5f5e5a; stroke: none; }
+    .o_tsm_door .o_tsm_shape_body { fill: #fbe9c8; stroke: #b8860b; }
+    .o_tsm_text .o_tsm_shape_body { fill: transparent; stroke: none; }
+    .o_tsm_unlinked .o_tsm_shape_body { stroke-dasharray: 3 3; }
+    .o_tsm_editing {
+        .o_tsm_rack .o_tsm_shape_body { stroke: #2a78d6; }
+        .o_tsm_pallet .o_tsm_shape_body { fill: #e9d6bd; stroke: #8a5a2b; }
+        .o_tsm_zone .o_tsm_shape_body { fill: #e7f0fc; stroke: #2a78d6; }
+        .o_tsm_text .o_tsm_shape_body { stroke: #c9c8c3; stroke-dasharray: 2 2; }
+        .o_tsm_shape { cursor: move; }
+    }
+    .o_tsm_selected .o_tsm_shape_body { stroke: #e8590c; stroke-width: 2; }
+    .o_tsm_clickable { cursor: pointer; }
+    .o_tsm_shape.o_tsm_clickable:hover .o_tsm_shape_body { stroke: #1f1f1d; stroke-width: 2; }
+    // 3D: the scene fills the canvas, help and legend over it
+    .o_tsm_scene3d {
+        position: relative;
+        width: 100%;
+        height: calc(100% - 40px);
+        min-height: 420px;
+        border: 1px solid $border-color;
+        border-radius: 4px;
+        overflow: hidden;
+        outline: none;
+
+        &:focus { border-color: #2a78d6; }
+        canvas { display: block; }
+    }
+    .o_tsm_scene3d_loading, .o_tsm_scene3d_help {
+        position: absolute;
+        left: 28px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.85);
+        font-size: 0.85em;
+        pointer-events: none;
+    }
+    .o_tsm_scene3d_loading { top: 28px; }
+    .o_tsm_scene3d_help { bottom: 60px; color: $text-muted; }
+    .o_tsm_handle { fill: #e8590c; cursor: nwse-resize; }
+
+    .o_tsm_label, .o_tsm_value {
+        text-anchor: middle;
+        dominant-baseline: central;
+        pointer-events: none;
+        fill: #1f1f1d;
+        font-size: 11px;
+    }
+    .o_tsm_value { font-size: 10px; }
+    .o_tsm_wall .o_tsm_label { fill: #ffffff; }
+    .o_tsm_text_light { fill: #ffffff; }
+
+    .o_tsm_tooltip {
+        position: absolute;
+        z-index: 10;
+        min-width: 180px;
+        padding: 8px 10px;
+        background: #ffffff;
+        border: 1px solid $border-color;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        pointer-events: none;
+
+        table { width: 100%; margin: 4px 0; }
+        td:last-child { text-align: right; font-variant-numeric: tabular-nums; padding-left: 12px; }
+    }
+
+    .o_tsm_legend {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        margin-top: 8px;
+        font-size: 0.9em;
+
+        .o_tsm_legend_swatch { width: 18px; height: 12px; border: 1px solid #c9c8c3; border-radius: 2px; }
+        .o_tsm_legend_ramp {
+            display: inline-flex;
+            span { width: 22px; height: 12px; }
+        }
+    }
+
+    @include media-breakpoint-down(md) {
+        .o_tsm_body { flex-direction: column; }
+        .o_tsm_palette, .o_tsm_panel { flex-basis: auto; border: none; }
+    }
+}

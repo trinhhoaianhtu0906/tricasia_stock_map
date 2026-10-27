@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="tricasia_stock_map.StockMap">
+        <div class="o_action o_tricasia_stock_map" tabindex="0" t-on-keydown="onKeyDown">
+            <div class="o_tsm_toolbar">
+                <select class="form-select o_tsm_warehouse" t-on-change="onChangeWarehouse" t-att-disabled="state.editing">
+                    <t t-foreach="state.warehouses" t-as="warehouse" t-key="warehouse.id">
+                        <option t-att-value="warehouse.id" t-att-selected="warehouse.id === state.warehouseId" t-esc="warehouse.name"/>
+                    </t>
+                </select>
+                <t t-if="state.map and !state.editing">
+                    <input type="search" class="form-control o_tsm_search" placeholder="Product..."
+                           t-att-value="state.productSearch" t-on-change="onChangeProductSearch"/>
+                    <select class="form-select o_tsm_category" t-on-change="onChangeCategory">
+                        <option value="">All categories</option>
+                        <t t-foreach="state.categories" t-as="categ" t-key="categ.id">
+                            <option t-att-value="categ.id" t-att-selected="categ.id === state.categId" t-esc="categ.complete_name"/>
+                        </t>
+                    </select>
+                </t>
+                <div class="o_tsm_toolbar_end">
+                    <t t-if="state.map and !state.editing">
+                        <t t-if="state.view === '3d'">
+                            <button type="button" t-attf-class="btn {{ state.walking ? 'btn-primary' : 'btn-secondary' }}"
+                                    t-on-click="onToggleWalk">
+                                <i class="fa fa-male me-1"/>Walk
+                            </button>
+                            <button t-if="!state.walking" type="button" class="btn btn-secondary" t-on-click="onResetView">
+                                <i class="fa fa-arrows-alt me-1"/>Overview
+                            </button>
+                        </t>
+                        <div class="btn-group" role="group">
+                            <button type="button" t-attf-class="btn {{ state.view === '2d' ? 'btn-primary' : 'btn-secondary' }}"
+                                    t-on-click="() => this.onChangeView('2d')">2D</button>
+                            <button type="button" t-attf-class="btn {{ state.view === '3d' ? 'btn-primary' : 'btn-secondary' }}"
+                                    t-on-click="() => this.onChangeView('3d')">3D</button>
+                        </div>
+                        <button type="button" class="btn btn-secondary" t-on-click="onToggleTable">
+                            <i class="fa fa-table me-1"/><t t-if="state.showTable">Hide Table</t><t t-else="">Table</t>
+                        </button>
+                        <button t-if="state.canEdit" type="button" class="btn btn-secondary" t-on-click="onEdit">
+                            <i class="fa fa-pencil me-1"/>Design
+                        </button>
+                    </t>
+                    <t t-if="state.editing">
+                        <button type="button" class="btn btn-primary" t-on-click="onSave">Save</button>
+                        <button type="button" class="btn btn-secondary" t-on-click="onDiscard">Discard</button>
+                    </t>
+                </div>
+            </div>
+
+            <div t-if="!state.map" class="o_tsm_empty">
+                <t t-if="!state.warehouseId">
+                    <p>No warehouse.</p>
+                </t>
+                <t t-elif="state.canEdit">
+                    <p>This warehouse has no map yet. A draft is drawn from its locations, then move the racks where they stand.</p>
+                    <button type="button" class="btn btn-primary" t-on-click="onCreateMap">Create the Map</button>
+                </t>
+                <t t-else="">
+                    <p>This warehouse has no map yet. Ask an inventory manager to draw it.</p>
+                </t>
+            </div>
+
+            <div t-else="" class="o_tsm_body">
+                <div t-if="state.editing" class="o_tsm_palette">
+                    <div class="o_tsm_palette_title">Drag onto the map</div>
+                    <t t-foreach="kindList" t-as="item" t-key="item.kind">
+                        <div t-attf-class="o_tsm_palette_item o_tsm_{{ item.kind }}" draggable="true"
+                             t-on-dragstart="(ev) => this.onPaletteDragStart(ev, item.kind)"
+                             t-on-click="() => this.addShape(item.kind)">
+                            <span class="o_tsm_swatch"/><t t-esc="item.label"/>
+                        </div>
+                    </t>
+                    <div class="o_tsm_palette_title mt-3">Map size (cells)</div>
+                    <label class="o_tsm_size">Width
+                        <input type="number" class="form-control" min="5" max="200" t-att-value="state.width"
+                               t-on-change="(ev) => this.onMapSize('width', ev)"/>
+                    </label>
+                    <label class="o_tsm_size">Height
+                        <input type="number" class="form-control" min="5" max="200" t-att-value="state.height"
+                               t-on-change="(ev) => this.onMapSize('height', ev)"/>
+                    </label>
+                    <p class="text-muted small mt-3">Drag a shape to move it, its corner to resize it. Arrow keys move the selected shape, Delete removes it.</p>
+                </div>
+
+                <div class="o_tsm_canvas" t-ref="canvas">
+                    <t t-if="state.view === '3d' and !state.editing">
+                        <div class="o_tsm_scene3d" t-ref="scene3d" tabindex="0"/>
+                        <div t-if="!state.threeReady" class="o_tsm_scene3d_loading"><i class="fa fa-spinner fa-spin me-2"/>Loading 3D...</div>
+                        <div class="o_tsm_scene3d_help">
+                            <t t-if="state.walking">W A S D or arrows: walk, Shift: faster, drag: look around</t>
+                            <t t-else="">Drag: turn around, right drag or Shift + drag: move, wheel: zoom</t>
+                        </div>
+                    </t>
+                    <svg t-else="" t-ref="svg" t-attf-class="o_tsm_svg {{ state.editing ? 'o_tsm_editing' : '' }}"
+                         t-att-viewBox="'0 0 ' + state.width * cell + ' ' + state.height * cell"
+                         t-att-style="'aspect-ratio: ' + state.width + ' / ' + state.height"
+                         t-on-dragover="onDragOver" t-on-drop.prevent="onDrop"
+                         t-on-pointermove="onPointerMove" t-on-pointerup="onPointerUp"
+                         t-on-pointerdown="onCanvasPointerDown">
+                        <defs>
+                            <pattern id="o_tsm_grid" t-att-width="cell" t-att-height="cell" patternUnits="userSpaceOnUse">
+                                <path t-att-d="'M ' + cell + ' 0 L 0 0 0 ' + cell" class="o_tsm_grid_line"/>
+                            </pattern>
+                        </defs>
+                        <rect class="o_tsm_floor" x="0" y="0" t-att-width="state.width * cell" t-att-height="state.height * cell"/>
+                        <rect t-if="state.editing" x="0" y="0" t-att-width="state.width * cell" t-att-height="state.height * cell" fill="url(#o_tsm_grid)"/>
+                        <t t-foreach="sortedShapes" t-as="shape" t-key="shape.key">
+                            <g t-att-class="shapeClass(shape)"
+                               t-on-pointerdown="(ev) => this.onShapePointerDown(ev, shape)"
+                               t-on-mouseenter="(ev) => this.onShapeEnter(ev, shape)"
+                               t-on-mousemove="(ev) => this.onShapeEnter(ev, shape)"
+                               t-on-mouseleave="onShapeLeave"
+                               t-on-click="() => this.onShapeClick(shape)">
+                                <rect class="o_tsm_shape_body" t-att-x="shape.x * cell + 1" t-att-y="shape.y * cell + 1"
+                                      t-att-width="shape.w * cell - 2" t-att-height="shape.h * cell - 2" rx="4"
+                                      t-att-style="shapeFill(shape) ? 'fill: ' + shapeFill(shape) : ''"/>
+                                <text t-att-class="'o_tsm_label ' + shapeTextClass(shape)"
+                                      t-att-x="(shape.x + shape.w / 2) * cell"
+                                      t-att-y="(shape.y + shape.h / 2) * cell - (!state.editing and heatOf(shape) and shape.h > 1 ? 6 : 0)"
+                                      t-esc="shapeTitle(shape)"/>
+                                <text t-if="!state.editing and heatOf(shape) and shape.h > 1"
+                                      t-att-class="'o_tsm_value ' + shapeTextClass(shape)"
+                                      t-att-x="(shape.x + shape.w / 2) * cell" t-att-y="(shape.y + shape.h / 2) * cell + 9"
+                                      t-esc="formatQty(heatOf(shape).qty)"/>
+                                <rect t-if="state.editing and shape.key === state.selectedKey" class="o_tsm_handle"
+                                      t-att-x="(shape.x + shape.w) * cell - 8" t-att-y="(shape.y + shape.h) * cell - 8" width="10" height="10"
+                                      t-on-pointerdown="(ev) => this.onShapePointerDown(ev, shape, 'resize')"/>
+                            </g>
+                        </t>
+                    </svg>
+
+                    <t t-set="info" t-value="hoverInfo"/>
+                    <div t-if="info" class="o_tsm_tooltip"
+                         t-att-style="'left: ' + state.hover.left + 'px; top: ' + state.hover.top + 'px'">
+                        <t t-set="heat" t-value="info.heat"/>
+                        <div class="fw-bold" t-esc="info.title"/>
+                        <div class="text-muted small" t-esc="info.subtitle"/>
+                        <table>
+                            <tr><td>Quantity</td><td t-esc="formatQty(heat.qty, true)"/></tr>
+                            <tr><td>Products</td><td t-esc="heat.products"/></tr>
+                        </table>
+                        <div class="text-muted small">Click to see the stock</div>
+                    </div>
+
+                    <div t-if="!state.editing" class="o_tsm_legend">
+                        <span class="o_tsm_legend_swatch" t-att-style="'background: ' + emptyFill"/>
+                        <span>Empty</span>
+                        <span class="o_tsm_legend_ramp ms-3">
+                            <t t-foreach="heatSteps" t-as="step" t-key="step_index">
+                                <span t-att-style="'background: ' + step"/>
+                            </t>
+                        </span>
+                        <span>0 – <t t-esc="formatQty(legendMax)"/></span>
+                        <span t-if="state.view === '3d'" class="text-muted ms-3">Colour and height of the goods: the stock of each shelf and pallet</span>
+                        <span t-if="unlinkedCount" class="text-muted ms-3"><t t-esc="unlinkedCount"/> shape(s) without location</span>
+                    </div>
+                </div>
+
+                <div t-if="state.editing and selected" class="o_tsm_panel">
+                    <div class="o_tsm_palette_title">Selected shape</div>
+                    <label>Kind
+                        <select class="form-select" t-on-change="(ev) => this.onShapeField('kind', ev)">
+                            <t t-foreach="kindList" t-as="item" t-key="item.kind">
+                                <option t-att-value="item.kind" t-att-selected="item.kind === selected.kind" t-esc="item.label"/>
+                            </t>
+                        </select>
+                    </label>
+                    <label t-if="kinds[selected.kind].stock">Location
+                        <select class="form-select" t-on-change="(ev) => this.onShapeField('locationId', ev)">
+                            <option value="">None</option>
+                            <t t-foreach="state.locations" t-as="loc" t-key="loc.id">
+                                <option t-att-value="loc.id" t-att-selected="loc.id === selected.locationId" t-esc="loc.name"/>
+                            </t>
+                        </select>
+                    </label>
+                    <label>Label
+                        <input type="text" class="form-control" t-att-value="selected.label"
+                               t-on-change="(ev) => this.onShapeField('label', ev)"/>
+                    </label>
+                    <div class="o_tsm_coords">
+                        <label>X<input type="number" class="form-control" t-att-value="selected.x" t-on-change="(ev) => this.onShapeField('x', ev)"/></label>
+                        <label>Y<input type="number" class="form-control" t-att-value="selected.y" t-on-change="(ev) => this.onShapeField('y', ev)"/></label>
+                        <label>Width<input type="number" class="form-control" min="1" t-att-value="selected.w" t-on-change="(ev) => this.onShapeField('w', ev)"/></label>
+                        <label>Height<input type="number" class="form-control" min="1" t-att-value="selected.h" t-on-change="(ev) => this.onShapeField('h', ev)"/></label>
+                    </div>
+                    <div class="o_tsm_panel_buttons">
+                        <button type="button" class="btn btn-secondary" t-on-click="onRotateShape"><i class="fa fa-repeat me-1"/>Rotate</button>
+                        <button type="button" class="btn btn-secondary" t-on-click="onDuplicateShape"><i class="fa fa-clone me-1"/>Duplicate</button>
+                        <button type="button" class="btn btn-danger" t-on-click="onDeleteShape"><i class="fa fa-trash me-1"/>Delete</button>
+                    </div>
+                </div>
+
+                <div t-if="!state.editing and state.showTable" class="o_tsm_panel o_tsm_table">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr><th>Location</th><th class="text-end">Quantity</th><th class="text-end">Products</th></tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="tableRows" t-as="row" t-key="row.shape.key">
+                                <tr class="o_tsm_clickable" t-on-click="() => this.onShapeClick(row.shape)">
+                                    <td t-esc="shapeTitle(row.shape)"/>
+                                    <td class="text-end" t-esc="formatQty(row.heat.qty, true)"/>
+                                    <td class="text-end" t-esc="row.heat.products"/>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

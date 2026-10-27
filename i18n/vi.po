@@ -1,0 +1,438 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* tricasia_stock_map
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0-20261015\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-27 16:05+0000\n"
+"PO-Revision-Date: 2026-10-27 16:05+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: vi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "2D"
+msgstr "2D"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "3D"
+msgstr "3D"
+
+#. module: tricasia_stock_map
+#. odoo-python
+#: code:addons/tricasia_stock_map/models/stock_map.py:0
+msgid "A shape is at least one cell wide and high."
+msgstr "Mỗi hình phải rộng và cao ít nhất một ô."
+
+#. module: tricasia_stock_map
+#: model:ir.model.constraint,message:tricasia_stock_map.constraint_tricasia_stock_map_warehouse_uniq
+msgid "A warehouse has a single map."
+msgstr "Mỗi kho chỉ có một sơ đồ."
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/js/stock_map.js:0
+#: model:ir.model.fields.selection,name:tricasia_stock_map.selection__tricasia_stock_map_shape__kind__aisle
+msgid "Aisle"
+msgstr "Lối đi"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "All categories"
+msgstr "Tất cả nhóm sản phẩm"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Click to see the stock"
+msgstr "Bấm để xem tồn kho"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Colour and height of the goods: the stock of each shelf and pallet"
+msgstr "Màu và chiều cao của hàng: tồn kho của từng tầng kệ và pallet"
+
+#. module: tricasia_stock_map
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map__company_id
+msgid "Company"
+msgstr "Công ty"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Create the Map"
+msgstr "Tạo sơ đồ"
+
+#. module: tricasia_stock_map
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map__create_uid
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_shape__create_uid
+msgid "Created by"
+msgstr "Được tạo bởi"
+
+#. module: tricasia_stock_map
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map__create_date
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_shape__create_date
+msgid "Created on"
+msgstr "Được tạo vào"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Delete"
+msgstr "Xoá"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Design"
+msgstr "Thiết kế"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Discard"
+msgstr "Huỷ bỏ"
+
+#. module: tricasia_stock_map
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map__display_name
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_shape__display_name
+msgid "Display Name"
+msgstr "Tên hiển thị"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#. odoo-python
+#: code:addons/tricasia_stock_map/models/stock_map.py:0
+#: code:addons/tricasia_stock_map/static/src/js/stock_map.js:0
+#: model:ir.model.fields.selection,name:tricasia_stock_map.selection__tricasia_stock_map_shape__kind__door
+msgid "Door"
+msgstr "Cửa"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid ""
+"Drag a shape to move it, its corner to resize it. Arrow keys move the "
+"selected shape, Delete removes it."
+msgstr ""
+"Kéo hình để di chuyển, kéo góc để đổi kích thước. Phím mũi tên di chuyển "
+"hình đang chọn, phím Delete để xoá."
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Drag onto the map"
+msgstr "Kéo thả vào sơ đồ"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Drag: turn around, right drag or Shift + drag: move, wheel: zoom"
+msgstr ""
+"Kéo chuột: xoay, chuột phải hoặc Shift + kéo: di chuyển, cuộn: phóng to"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Duplicate"
+msgstr "Nhân bản"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Empty"
+msgstr "Trống"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map__height
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_shape__height
+msgid "Height"
+msgstr "Cao"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Hide Table"
+msgstr "Ẩn bảng"
+
+#. module: tricasia_stock_map
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map__id
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_shape__id
+msgid "ID"
+msgstr "ID"
+
+#. module: tricasia_stock_map
+#: model:ir.model.fields,help:tricasia_stock_map.field_tricasia_stock_map__height
+#: model:ir.model.fields,help:tricasia_stock_map.field_tricasia_stock_map__width
+msgid "In grid cells, one cell being a metre in 3D."
+msgstr "Tính theo ô lưới, mỗi ô là một mét trong 3D."
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_shape__kind
+msgid "Kind"
+msgstr "Loại"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/js/stock_map.js:0
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_shape__label
+#: model:ir.model.fields.selection,name:tricasia_stock_map.selection__tricasia_stock_map_shape__kind__text
+msgid "Label"
+msgstr "Nhãn"
+
+#. module: tricasia_stock_map
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map__write_uid
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_shape__write_uid
+msgid "Last Updated by"
+msgstr "Cập nhật lần cuối bởi"
+
+#. module: tricasia_stock_map
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map__write_date
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_shape__write_date
+msgid "Last Updated on"
+msgstr "Cập nhật lần cuối vào"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Loading 3D..."
+msgstr "Đang tải 3D..."
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_shape__location_id
+msgid "Location"
+msgstr "Vị trí"
+
+#. module: tricasia_stock_map
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_shape__map_id
+msgid "Map"
+msgstr "Sơ đồ"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Map size (cells)"
+msgstr "Kích thước sơ đồ (ô)"
+
+#. module: tricasia_stock_map
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map__name
+msgid "Name"
+msgstr "Tên"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "No warehouse."
+msgstr "Chưa có kho nào."
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "None"
+msgstr "Không gắn"
+
+#. module: tricasia_stock_map
+#. odoo-python
+#: code:addons/tricasia_stock_map/models/stock_map.py:0
+msgid "Only racks, pallets and zones can be linked to a location."
+msgstr "Chỉ kệ, pallet và khu vực mới gắn được với vị trí kho."
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Overview"
+msgstr "Toàn cảnh"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/js/stock_map.js:0
+#: model:ir.model.fields.selection,name:tricasia_stock_map.selection__tricasia_stock_map_shape__kind__pallet
+msgid "Pallet"
+msgstr "Pallet"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Product..."
+msgstr "Sản phẩm..."
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Products"
+msgstr "Số sản phẩm"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Quantity"
+msgstr "Số lượng"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/js/stock_map.js:0
+#: model:ir.model.fields.selection,name:tricasia_stock_map.selection__tricasia_stock_map_shape__kind__rack
+msgid "Rack"
+msgstr "Kệ"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Rotate"
+msgstr "Xoay"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Save"
+msgstr "Lưu"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Selected shape"
+msgstr "Hình đang chọn"
+
+#. module: tricasia_stock_map
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map__shape_ids
+msgid "Shapes"
+msgstr "Các hình"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Table"
+msgstr "Bảng"
+
+#. module: tricasia_stock_map
+#: model:ir.model.fields,help:tricasia_stock_map.field_tricasia_stock_map__company_id
+msgid "The company is automatically set from your user preferences."
+msgstr "Công ty được tự động đặt theo thiết lập người dùng của bạn."
+
+#. module: tricasia_stock_map
+#. odoo-python
+#: code:addons/tricasia_stock_map/models/stock_map.py:0
+msgid "The location %(location)s is not in the warehouse %(warehouse)s."
+msgstr "Vị trí %(location)s không thuộc kho %(warehouse)s."
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/js/stock_map.js:0
+msgid "The map is saved."
+msgstr "Đã lưu sơ đồ."
+
+#. module: tricasia_stock_map
+#: model:ir.model.constraint,message:tricasia_stock_map.constraint_tricasia_stock_map_size_check
+msgid "The map needs a size."
+msgstr "Sơ đồ cần có kích thước."
+
+#. module: tricasia_stock_map
+#: model:ir.model.fields,help:tricasia_stock_map.field_tricasia_stock_map_shape__location_id
+msgid "The stock of this location and its sub-locations colours the shape."
+msgstr "Tồn kho của vị trí này và các vị trí con quyết định màu của hình."
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid ""
+"This warehouse has no map yet. A draft is drawn from its locations, then "
+"move the racks where they stand."
+msgstr ""
+"Kho này chưa có sơ đồ. Hệ thống sẽ vẽ bản nháp từ các vị trí kho, sau đó bạn"
+" kéo các kệ về đúng chỗ thực tế."
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "This warehouse has no map yet. Ask an inventory manager to draw it."
+msgstr "Kho này chưa có sơ đồ. Hãy nhờ quản lý kho vẽ sơ đồ."
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "W A S D or arrows: walk, Shift: faster, drag: look around"
+msgstr "W A S D hoặc mũi tên: đi, Shift: đi nhanh, kéo chuột: nhìn quanh"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Walk"
+msgstr "Đi bộ"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/js/stock_map.js:0
+#: model:ir.model.fields.selection,name:tricasia_stock_map.selection__tricasia_stock_map_shape__kind__wall
+msgid "Wall"
+msgstr "Tường"
+
+#. module: tricasia_stock_map
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map__warehouse_id
+msgid "Warehouse"
+msgstr "Kho"
+
+#. module: tricasia_stock_map
+#: model:ir.actions.client,name:tricasia_stock_map.action_stock_map
+#: model:ir.model,name:tricasia_stock_map.model_tricasia_stock_map
+#: model:ir.ui.menu,name:tricasia_stock_map.menu_stock_map
+msgid "Warehouse Map"
+msgstr "Sơ đồ kho"
+
+#. module: tricasia_stock_map
+#: model:ir.model,name:tricasia_stock_map.model_tricasia_stock_map_shape
+msgid "Warehouse Map Shape"
+msgstr "Hình trên sơ đồ kho"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map__width
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_shape__width
+msgid "Width"
+msgstr "Rộng"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_shape__x
+msgid "X"
+msgstr "X"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_shape__y
+msgid "Y"
+msgstr "Y"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/js/stock_map.js:0
+#: model:ir.model.fields.selection,name:tricasia_stock_map.selection__tricasia_stock_map_shape__kind__zone
+msgid "Zone"
+msgstr "Khu vực"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "shape(s) without location"
+msgstr "hình chưa gắn vị trí"
