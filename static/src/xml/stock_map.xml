@@ -28,6 +28,11 @@
                             <button t-if="!state.walking" type="button" class="btn btn-secondary" t-on-click="onResetView">
                                 <i class="fa fa-arrows-alt me-1"/>Overview
                             </button>
+                            <button t-if="!state.walking and state.floors.length > 1" type="button"
+                                    t-attf-class="btn {{ state.allFloors ? 'btn-primary' : 'btn-secondary' }}"
+                                    t-on-click="onToggleAllFloors">
+                                <i class="fa fa-building-o me-1"/>All Floors
+                            </button>
                         </t>
                         <div class="btn-group" role="group">
                             <button type="button" t-attf-class="btn {{ state.view === '2d' ? 'btn-primary' : 'btn-secondary' }}"
@@ -47,6 +52,26 @@
                         <button type="button" class="btn btn-secondary" t-on-click="onDiscard">Discard</button>
                     </t>
                 </div>
+            </div>
+
+            <div t-if="state.map and (state.floors.length > 1 or state.editing)" class="o_tsm_floors">
+                <span class="o_tsm_floors_title"><i class="fa fa-building-o me-1"/>Floors</span>
+                <t t-foreach="state.floors" t-as="floorTab" t-key="floorTab.key">
+                    <button type="button"
+                            t-attf-class="btn btn-sm {{ floorTab.key === state.floorKey ? 'btn-primary' : 'btn-light' }}"
+                            t-on-click="() => this.onSelectFloor(floorTab)">
+                        <t t-esc="floorTab.name"/>
+                        <span t-if="!state.editing" class="o_tsm_floor_qty" t-esc="formatQty(floorQty(floorTab))"/>
+                    </button>
+                </t>
+                <t t-if="state.editing">
+                    <button type="button" class="btn btn-sm btn-link" t-on-click="() => this.onAddFloor(false)">
+                        <i class="fa fa-plus me-1"/>Empty Floor
+                    </button>
+                    <button type="button" class="btn btn-sm btn-link" t-on-click="() => this.onAddFloor(true)">
+                        <i class="fa fa-clone me-1"/>Floor with the Same Walls
+                    </button>
+                </t>
             </div>
 
             <div t-if="!state.map" class="o_tsm_empty">
@@ -72,13 +97,31 @@
                             <span class="o_tsm_swatch"/><t t-esc="item.label"/>
                         </div>
                     </t>
-                    <div class="o_tsm_palette_title mt-3">Map size (cells)</div>
+                    <div class="o_tsm_palette_title mt-3">Floor</div>
+                    <label class="o_tsm_size">Name
+                        <input type="text" class="form-control" t-att-value="floor.name" t-on-change="onFloorName"/>
+                    </label>
+                    <div class="o_tsm_panel_buttons mb-2">
+                        <button type="button" class="btn btn-sm btn-secondary" title="Move down a floor"
+                                t-att-disabled="floorIndex === 0" t-on-click="() => this.onMoveFloor(-1)">
+                            <i class="fa fa-arrow-down"/>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-secondary" title="Move up a floor"
+                                t-att-disabled="floorIndex === state.floors.length - 1" t-on-click="() => this.onMoveFloor(1)">
+                            <i class="fa fa-arrow-up"/>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-danger" t-att-disabled="state.floors.length &lt; 2"
+                                t-on-click="onDeleteFloor">
+                            <i class="fa fa-trash me-1"/>Delete Floor
+                        </button>
+                    </div>
+                    <div class="o_tsm_palette_title mt-3">Floor size (cells)</div>
                     <label class="o_tsm_size">Width
-                        <input type="number" class="form-control" min="5" max="200" t-att-value="state.width"
+                        <input type="number" class="form-control" min="5" max="200" t-att-value="floor.width"
                                t-on-change="(ev) => this.onMapSize('width', ev)"/>
                     </label>
                     <label class="o_tsm_size">Height
-                        <input type="number" class="form-control" min="5" max="200" t-att-value="state.height"
+                        <input type="number" class="form-control" min="5" max="200" t-att-value="floor.height"
                                t-on-change="(ev) => this.onMapSize('height', ev)"/>
                     </label>
                     <p class="text-muted small mt-3">Drag a shape to move it, its corner to resize it. Arrow keys move the selected shape, Delete removes it.</p>
@@ -94,8 +137,8 @@
                         </div>
                     </t>
                     <svg t-else="" t-ref="svg" t-attf-class="o_tsm_svg {{ state.editing ? 'o_tsm_editing' : '' }}"
-                         t-att-viewBox="'0 0 ' + state.width * cell + ' ' + state.height * cell"
-                         t-att-style="'aspect-ratio: ' + state.width + ' / ' + state.height"
+                         t-att-viewBox="'0 0 ' + floor.width * cell + ' ' + floor.height * cell"
+                         t-att-style="'aspect-ratio: ' + floor.width + ' / ' + floor.height"
                          t-on-dragover="onDragOver" t-on-drop.prevent="onDrop"
                          t-on-pointermove="onPointerMove" t-on-pointerup="onPointerUp"
                          t-on-pointerdown="onCanvasPointerDown">
@@ -104,8 +147,8 @@
                                 <path t-att-d="'M ' + cell + ' 0 L 0 0 0 ' + cell" class="o_tsm_grid_line"/>
                             </pattern>
                         </defs>
-                        <rect class="o_tsm_floor" x="0" y="0" t-att-width="state.width * cell" t-att-height="state.height * cell"/>
-                        <rect t-if="state.editing" x="0" y="0" t-att-width="state.width * cell" t-att-height="state.height * cell" fill="url(#o_tsm_grid)"/>
+                        <rect class="o_tsm_floor" x="0" y="0" t-att-width="floor.width * cell" t-att-height="floor.height * cell"/>
+                        <rect t-if="state.editing" x="0" y="0" t-att-width="floor.width * cell" t-att-height="floor.height * cell" fill="url(#o_tsm_grid)"/>
                         <t t-foreach="sortedShapes" t-as="shape" t-key="shape.key">
                             <g t-att-class="shapeClass(shape)"
                                t-on-pointerdown="(ev) => this.onShapePointerDown(ev, shape)"

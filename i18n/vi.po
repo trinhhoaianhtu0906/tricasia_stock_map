@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0-20261015\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 16:05+0000\n"
-"PO-Revision-Date: 2026-10-27 16:05+0000\n"
+"POT-Creation-Date: 2026-10-27 16:21+0000\n"
+"PO-Revision-Date: 2026-10-27 16:21+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: vi\n"
@@ -29,6 +29,17 @@ msgid "3D"
 msgstr "3D"
 
 #. module: tricasia_stock_map
+#: model:ir.model.constraint,message:tricasia_stock_map.constraint_tricasia_stock_map_floor_size_check
+msgid "A floor needs a size."
+msgstr "Tầng phải có kích thước."
+
+#. module: tricasia_stock_map
+#. odoo-python
+#: code:addons/tricasia_stock_map/models/stock_map.py:0
+msgid "A map keeps at least one floor."
+msgstr "Sơ đồ phải có ít nhất một tầng."
+
+#. module: tricasia_stock_map
 #. odoo-python
 #: code:addons/tricasia_stock_map/models/stock_map.py:0
 msgid "A shape is at least one cell wide and high."
@@ -45,6 +56,12 @@ msgstr "Mỗi kho chỉ có một sơ đồ."
 #: model:ir.model.fields.selection,name:tricasia_stock_map.selection__tricasia_stock_map_shape__kind__aisle
 msgid "Aisle"
 msgstr "Lối đi"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "All Floors"
+msgstr "Tất cả tầng"
 
 #. module: tricasia_stock_map
 #. odoo-javascript
@@ -77,12 +94,14 @@ msgstr "Tạo sơ đồ"
 
 #. module: tricasia_stock_map
 #: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map__create_uid
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_floor__create_uid
 #: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_shape__create_uid
 msgid "Created by"
 msgstr "Được tạo bởi"
 
 #. module: tricasia_stock_map
 #: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map__create_date
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_floor__create_date
 #: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_shape__create_date
 msgid "Created on"
 msgstr "Được tạo vào"
@@ -92,6 +111,22 @@ msgstr "Được tạo vào"
 #: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
 msgid "Delete"
 msgstr "Xoá"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Delete Floor"
+msgstr "Xoá tầng"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/js/stock_map.js:0
+msgid ""
+"Delete the floor %(floor)s and its %(count)s shape(s)? It is gone once the "
+"map is saved."
+msgstr ""
+"Xoá tầng %(floor)s cùng %(count)s hình trên đó? Tầng sẽ mất hẳn khi lưu sơ "
+"đồ."
 
 #. module: tricasia_stock_map
 #. odoo-javascript
@@ -107,6 +142,7 @@ msgstr "Huỷ bỏ"
 
 #. module: tricasia_stock_map
 #: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map__display_name
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_floor__display_name
 #: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_shape__display_name
 msgid "Display Name"
 msgstr "Tên hiển thị"
@@ -158,7 +194,53 @@ msgstr "Trống"
 #. module: tricasia_stock_map
 #. odoo-javascript
 #: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
-#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map__height
+msgid "Empty Floor"
+msgstr "Tầng trống"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_shape__floor_id
+msgid "Floor"
+msgstr "Tầng"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#. odoo-python
+#: code:addons/tricasia_stock_map/models/stock_map.py:0
+#: code:addons/tricasia_stock_map/static/src/js/stock_map.js:0
+msgid "Floor %s"
+msgstr "Tầng %s"
+
+#. module: tricasia_stock_map
+#. odoo-python
+#: code:addons/tricasia_stock_map/models/stock_map.py:0
+msgid "Floor 1"
+msgstr "Tầng 1"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Floor size (cells)"
+msgstr "Kích thước tầng (ô)"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Floor with the Same Walls"
+msgstr "Tầng cùng tường"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map__floor_ids
+msgid "Floors"
+msgstr "Tầng"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_floor__height
 #: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_shape__height
 msgid "Height"
 msgstr "Cao"
@@ -171,13 +253,14 @@ msgstr "Ẩn bảng"
 
 #. module: tricasia_stock_map
 #: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map__id
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_floor__id
 #: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_shape__id
 msgid "ID"
 msgstr "ID"
 
 #. module: tricasia_stock_map
-#: model:ir.model.fields,help:tricasia_stock_map.field_tricasia_stock_map__height
-#: model:ir.model.fields,help:tricasia_stock_map.field_tricasia_stock_map__width
+#: model:ir.model.fields,help:tricasia_stock_map.field_tricasia_stock_map_floor__height
+#: model:ir.model.fields,help:tricasia_stock_map.field_tricasia_stock_map_floor__width
 msgid "In grid cells, one cell being a metre in 3D."
 msgstr "Tính theo ô lưới, mỗi ô là một mét trong 3D."
 
@@ -199,12 +282,14 @@ msgstr "Nhãn"
 
 #. module: tricasia_stock_map
 #: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map__write_uid
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_floor__write_uid
 #: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_shape__write_uid
 msgid "Last Updated by"
 msgstr "Cập nhật lần cuối bởi"
 
 #. module: tricasia_stock_map
 #: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map__write_date
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_floor__write_date
 #: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_shape__write_date
 msgid "Last Updated on"
 msgstr "Cập nhật lần cuối vào"
@@ -223,6 +308,7 @@ msgid "Location"
 msgstr "Vị trí"
 
 #. module: tricasia_stock_map
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_floor__map_id
 #: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_shape__map_id
 msgid "Map"
 msgstr "Sơ đồ"
@@ -230,11 +316,20 @@ msgstr "Sơ đồ"
 #. module: tricasia_stock_map
 #. odoo-javascript
 #: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
-msgid "Map size (cells)"
-msgstr "Kích thước sơ đồ (ô)"
+msgid "Move down a floor"
+msgstr "Chuyển xuống một tầng"
 
 #. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
+msgid "Move up a floor"
+msgstr "Chuyển lên một tầng"
+
+#. module: tricasia_stock_map
+#. odoo-javascript
+#: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
 #: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map__name
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_floor__name
 msgid "Name"
 msgstr "Tên"
 
@@ -313,7 +408,13 @@ msgid "Selected shape"
 msgstr "Hình đang chọn"
 
 #. module: tricasia_stock_map
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_floor__sequence
+msgid "Sequence"
+msgstr "Thứ tự"
+
+#. module: tricasia_stock_map
 #: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map__shape_ids
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_floor__shape_ids
 msgid "Shapes"
 msgstr "Các hình"
 
@@ -339,11 +440,6 @@ msgstr "Vị trí %(location)s không thuộc kho %(warehouse)s."
 #: code:addons/tricasia_stock_map/static/src/js/stock_map.js:0
 msgid "The map is saved."
 msgstr "Đã lưu sơ đồ."
-
-#. module: tricasia_stock_map
-#: model:ir.model.constraint,message:tricasia_stock_map.constraint_tricasia_stock_map_size_check
-msgid "The map needs a size."
-msgstr "Sơ đồ cần có kích thước."
 
 #. module: tricasia_stock_map
 #: model:ir.model.fields,help:tricasia_stock_map.field_tricasia_stock_map_shape__location_id
@@ -398,6 +494,11 @@ msgid "Warehouse Map"
 msgstr "Sơ đồ kho"
 
 #. module: tricasia_stock_map
+#: model:ir.model,name:tricasia_stock_map.model_tricasia_stock_map_floor
+msgid "Warehouse Map Floor"
+msgstr "Tầng của sơ đồ kho"
+
+#. module: tricasia_stock_map
 #: model:ir.model,name:tricasia_stock_map.model_tricasia_stock_map_shape
 msgid "Warehouse Map Shape"
 msgstr "Hình trên sơ đồ kho"
@@ -405,7 +506,7 @@ msgstr "Hình trên sơ đồ kho"
 #. module: tricasia_stock_map
 #. odoo-javascript
 #: code:addons/tricasia_stock_map/static/src/xml/stock_map.xml:0
-#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map__width
+#: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_floor__width
 #: model:ir.model.fields,field_description:tricasia_stock_map.field_tricasia_stock_map_shape__width
 msgid "Width"
 msgstr "Rộng"

@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 SHAPE_KINDS = [
     ('rack', 'Rack'),
@@ -18,7 +18,7 @@ SHAPE_FIELDS = ('kind', 'label', 'location_id', 'x', 'y', 'width', 'height')
 
 
 class StockMap(models.Model):
-    """Floor plan of a warehouse: shapes on a grid, racks, pallets and zones linked to its locations."""
+    """Plan of a warehouse: one or more floors, each a grid of shapes linked to its locations."""
 
     _name = 'tricasia.stock.map'
     _description = 'Warehouse Map'
@@ -26,12 +26,10 @@ class StockMap(models.Model):
     warehouse_id = fields.Many2one('stock.warehouse', required=True, ondelete='cascade')
     company_id = fields.Many2one(related='warehouse_id.company_id', store=True)
     name = fields.Char(string='Name', related='warehouse_id.name')
-    width = fields.Integer(default=40, help='In grid cells, one cell being a metre in 3D.')
-    height = fields.Integer(default=24, help='In grid cells, one cell being a metre in 3D.')
-    shape_ids = fields.One2many('tricasia.stock.map.shape', 'map_id', string='Shapes')
+    floor_ids = fields.One2many('tricasia.stock.map.floor', 'map_id', string='Floors')
+    shape_ids = fields.One2many('tricasia.stock.map.shape', 'map_id', string='Shapes', readonly=True)
 
     _warehouse_uniq = models.Constraint('unique(warehouse_id)', 'A warehouse has a single map.')
-    _size_check = models.Constraint('CHECK(width > 0 AND height > 0)', 'The map needs a size.')
 
     # ----------------------------------------------------------
     # Screen API
@@ -61,20 +59,46 @@ class StockMap(models.Model):
         stock_map._draw_draft()
         return stock_map.id
 
-    def save_map(self, shapes, width, height):
-        """Replace the drawing with the shapes of the screen: [{id or False, kind, ...}]."""
+    def save_map(self, floors):
+        """Replace the drawing with the floors of the screen, in their order.
+
+        :param floors: [{id or False, name, width, height, shapes: [{id or False, kind, ...}]}];
+            a floor or a shape left out is deleted
+        :raise UserError: without any floor
+        """
         self.ensure_one()
-        commands = []
-        kept = set()
-        for shape in shapes:
-            vals = {field: shape.get(field) or False for field in SHAPE_FIELDS}
-            if shape.get('id') in self.shape_ids.ids:
-                kept.add(shape['id'])
-                commands.append(fields.Command.update(shape['id'], vals))
+        if not floors:
+            raise UserError(_('A map keeps at least one floor.'))
+        floor_commands = []
+        kept_floors = set()
+        for sequence, floor in enumerate(floors):
+            record = self.floor_ids.filtered(lambda f: f.id == floor.get('id'))
+            shape_commands = []
+            kept_shapes = set()
+            for shape in floor.get('shapes') or []:
+                vals = {field: shape.get(field) or False for field in SHAPE_FIELDS}
+                if shape.get('id') in record.shape_ids.ids:
+                    kept_shapes.add(shape['id'])
+                    shape_commands.append(fields.Command.update(shape['id'], vals))
+                else:
+                    shape_commands.append(fields.Command.create(vals))
+            shape_commands += [fields.Command.delete(i) for i in set(record.shape_ids.ids) - kept_shapes]
+            vals = {
+                'name': floor.get('name') or _('Floor %s', sequence + 1),
+                'sequence': sequence,
+                'width': floor.get('width'),
+                'height': floor.get('height'),
+                'shape_ids': shape_commands,
+            }
+            if record:
+                kept_floors.add(record.id)
+                floor_commands.append(fields.Command.update(record.id, vals))
             else:
-                commands.append(fields.Command.create(vals))
-        commands += [fields.Command.delete(shape_id) for shape_id in set(self.shape_ids.ids) - kept]
-        self.write({'width': width, 'height': height, 'shape_ids': commands})
+                floor_commands.append(fields.Command.create(vals))
+        floor_commands += [fields.Command.delete(i) for i in set(self.floor_ids.ids) - kept_floors]
+        self.write({'floor_ids': floor_commands})
+        # The cache keeps the floors in their former order; the screen needs the new one
+        self.invalidate_recordset(['floor_ids'])
         return self._map_data()
 
     def compute_heat(self, product_search=False, categ_id=False):
@@ -160,16 +184,21 @@ class StockMap(models.Model):
         self.ensure_one()
         return {
             'id': self.id,
-            'width': self.width,
-            'height': self.height,
-            'shapes': [
-                dict({field: shape[field] for field in SHAPE_FIELDS}, id=shape.id, location_id=shape.location_id.id)
-                for shape in self.shape_ids
-            ],
+            'floors': [{
+                'id': floor.id,
+                'name': floor.name,
+                'width': floor.width,
+                'height': floor.height,
+                'shapes': [
+                    dict({field: shape[field] for field in SHAPE_FIELDS}, id=shape.id,
+                         location_id=shape.location_id.id)
+                    for shape in floor.shape_ids
+                ],
+            } for floor in self.floor_ids],
         }
 
     def _draw_draft(self):
-        """Racks of 4 x 2 cells, 6 per row, with an aisle between rows, walls around and a door."""
+        """A first floor: racks of 4 x 2 cells, 6 per row, an aisle between rows, walls around and a door."""
         self.ensure_one()
         stock = self.warehouse_id.lot_stock_id
         children = self.env['stock.location'].search(
@@ -200,7 +229,25 @@ class StockMap(models.Model):
         ):
             shapes.append(fields.Command.create(
                 {'kind': kind, 'label': label, 'x': x, 'y': y, 'width': w, 'height': h}))
-        self.write({'width': width, 'height': height, 'shape_ids': shapes})
+        self.write({'floor_ids': [fields.Command.create(
+            {'name': _('Floor 1'), 'width': width, 'height': height, 'shape_ids': shapes})]})
+
+
+class StockMapFloor(models.Model):
+    """One storey of a warehouse, drawn on its own grid."""
+
+    _name = 'tricasia.stock.map.floor'
+    _description = 'Warehouse Map Floor'
+    _order = 'sequence, id'
+
+    map_id = fields.Many2one('tricasia.stock.map', string='Map', required=True, ondelete='cascade', index=True)
+    name = fields.Char(required=True)
+    sequence = fields.Integer(default=10)
+    width = fields.Integer(default=40, help='In grid cells, one cell being a metre in 3D.')
+    height = fields.Integer(default=24, help='In grid cells, one cell being a metre in 3D.')
+    shape_ids = fields.One2many('tricasia.stock.map.shape', 'floor_id', string='Shapes')
+
+    _size_check = models.Constraint('CHECK(width > 0 AND height > 0)', 'A floor needs a size.')
 
 
 class StockMapShape(models.Model):
@@ -208,7 +255,9 @@ class StockMapShape(models.Model):
     _description = 'Warehouse Map Shape'
     _order = 'id'
 
-    map_id = fields.Many2one('tricasia.stock.map', string='Map', required=True, ondelete='cascade')
+    floor_id = fields.Many2one(
+        'tricasia.stock.map.floor', string='Floor', required=True, ondelete='cascade', index=True)
+    map_id = fields.Many2one(related='floor_id.map_id', store=True, index=True)
     kind = fields.Selection(SHAPE_KINDS, required=True, default='rack')
     label = fields.Char()
     location_id = fields.Many2one(

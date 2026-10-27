@@ -3,3 +3,5 @@ access_stock_map_user,tricasia.stock.map user,model_tricasia_stock_map,stock.gro
 access_stock_map_manager,tricasia.stock.map manager,model_tricasia_stock_map,stock.group_stock_manager,1,1,1,1
 access_stock_map_shape_user,tricasia.stock.map.shape user,model_tricasia_stock_map_shape,stock.group_stock_user,1,0,0,0
 access_stock_map_shape_manager,tricasia.stock.map.shape manager,model_tricasia_stock_map_shape,stock.group_stock_manager,1,1,1,1
+access_stock_map_floor_user,tricasia.stock.map.floor user,model_tricasia_stock_map_floor,stock.group_stock_user,1,0,0,0
+access_stock_map_floor_manager,tricasia.stock.map.floor manager,model_tricasia_stock_map_floor,stock.group_stock_manager,1,1,1,1

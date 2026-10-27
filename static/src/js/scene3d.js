@@ -82,13 +82,46 @@ export class WarehouseScene {
     // Content
 
     /**
-     * @param {Object} map {width, height, items: [{key, kind, x, y, w, h, label, color, opacity, pickable,
-     *     fill (pallets, 0 to 1), hasLevels, levels: [{color, fill (0 to 1)}]}]}
+     * @param {Object} map {floors: [{elevation, width, height, active, items: [{key, kind, x, y, w, h, label,
+     *     color, opacity, pickable, fill (pallets, 0 to 1), hasLevels, levels: [{color, fill (0 to 1)}]}]}]}
+     *     Only the active floor can be pointed at and walked on; the others are drawn faded.
      */
     setMap(map) {
         this._clear();
-        const sizeChanged = !this.mapSize || this.mapSize[0] !== map.width || this.mapSize[1] !== map.height;
-        this.mapSize = [map.width, map.height];
+        const active = map.floors.find((floor) => floor.active) || map.floors[0];
+        const width = Math.max(...map.floors.map((floor) => floor.width));
+        const height = Math.max(...map.floors.map((floor) => floor.height));
+        const top = Math.max(...map.floors.map((floor) => floor.elevation)) + WALL_HEIGHT;
+        const layout = JSON.stringify([width, height, top, active.width, active.height, active.elevation]);
+        const sizeChanged = layout !== this.layout;
+        this.layout = layout;
+        this.mapSize = [active.width, active.height];
+        this.elevation = active.elevation;
+        this.frameBox = { width, height, top, focus: active.elevation };
+        let doors = [];
+        for (const floor of map.floors) {
+            this.group = new this.THREE.Group();
+            this.group.position.y = floor.elevation;
+            this.content.add(this.group);
+            const pickables = this.pickables.length;
+            const obstacles = this.obstacles.length;
+            const floorDoors = this._addStorey(floor);
+            if (floor === active) {
+                doors = floorDoors;
+            } else {
+                this.pickables.length = pickables;
+                this.obstacles.length = obstacles;
+                this._fade(this.group);
+            }
+        }
+        this._placeSun(width, height, top);
+        if (sizeChanged) {
+            this.frameAll();
+            this._placeWalker(doors);
+        }
+    }
+
+    _addStorey(map) {
         this._addFloor(map.width, map.height);
         const doors = map.items.filter((item) => item.kind === "door");
         for (const item of map.items) {
@@ -113,11 +146,24 @@ export class WarehouseScene {
                     this._addLabel(item.label, item.x + item.w / 2, 0.4, item.y + item.h / 2, 0.8);
             }
         }
-        this._placeSun(map.width, map.height);
-        if (sizeChanged) {
-            this.frameAll();
-            this._placeWalker(doors);
-        }
+        return doors;
+    }
+
+    /**
+     * Ghost a floor that is not the selected one, so the selected one stays readable through it.
+     */
+    _fade(group) {
+        group.traverse((object) => {
+            const materials = Array.isArray(object.material) ? object.material : [object.material];
+            for (const material of materials) {
+                if (material && material.visible !== false) {
+                    material.transparent = true;
+                    material.opacity = (material.opacity ?? 1) * 0.18;
+                    material.depthWrite = false;
+                }
+            }
+            object.castShadow = false;
+        });
     }
 
     _clear() {
@@ -143,7 +189,7 @@ export class WarehouseScene {
         mesh.position.set(x, y, z);
         mesh.castShadow = shadow;
         mesh.receiveShadow = true;
-        this.content.add(mesh);
+        this.group.add(mesh);
         return mesh;
     }
 
@@ -161,7 +207,7 @@ export class WarehouseScene {
             new THREE.BufferGeometry().setFromPoints(points),
             new THREE.LineBasicMaterial({ color: COLORS.grid })
         );
-        this.content.add(grid);
+        this.group.add(grid);
     }
 
     _addFloorArea(item) {
@@ -277,7 +323,7 @@ export class WarehouseScene {
             );
             hit.position.set(x0 + w / 2, base + LEVEL_HEIGHT / 2, z0 + d / 2);
             hit.userData = { key: item.key, level: item.hasLevels ? index : null };
-            this.content.add(hit);
+            this.group.add(hit);
             this.pickables.push(hit);
         });
         this._box(w, 0.06, d, COLORS.beam, { x: x0 + w / 2, y: height + 0.05, z: z0 + d / 2 });
@@ -320,7 +366,7 @@ export class WarehouseScene {
         const hit = new THREE.Mesh(new THREE.BoxGeometry(w, height, d), new THREE.MeshBasicMaterial({ visible: false }));
         hit.position.set(x0 + w / 2, height / 2, z0 + d / 2);
         hit.userData = { key: item.key, level: null };
-        this.content.add(hit);
+        this.group.add(hit);
         this.pickables.push(hit);
         if (item.label) {
             this._addLabel(item.label, item.x + item.w / 2, height + 0.4, item.y + item.h / 2, 0.5);
@@ -351,17 +397,17 @@ export class WarehouseScene {
         const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, depthWrite: false }));
         sprite.scale.set((size * canvas.width) / canvas.height, size, 1);
         sprite.position.set(x, y, z);
-        this.content.add(sprite);
+        this.group.add(sprite);
     }
 
-    _placeSun(width, height) {
-        const size = Math.max(width, height);
-        this.sun.position.set(width * 0.3, size * 1.2, height * -0.2);
+    _placeSun(width, height, top) {
+        const size = Math.max(width, height, top);
+        this.sun.position.set(width * 0.3, top + size * 1.2, height * -0.2);
         this.sun.target.position.set(width / 2, 0, height / 2);
         const camera = this.sun.shadow.camera;
         camera.left = camera.bottom = -size;
         camera.right = camera.top = size;
-        camera.far = size * 4;
+        camera.far = (top + size) * 4;
         camera.updateProjectionMatrix();
     }
 
@@ -376,9 +422,10 @@ export class WarehouseScene {
     }
 
     frameAll() {
-        const [width, height] = this.mapSize;
-        this.orbit.target.set(width / 2, 0, height / 2);
-        this.orbit.radius = Math.max(width, height) * 0.85;
+        // Looking at the selected floor; a building of several floors needs to step back
+        const { width, height, top, focus } = this.frameBox;
+        this.orbit.target.set(width / 2, focus, height / 2);
+        this.orbit.radius = Math.max(width, height, top * 1.5) * 0.85;
         this.orbit.theta = Math.PI / 4;
         this.orbit.phi = 0.9;
     }
@@ -395,7 +442,7 @@ export class WarehouseScene {
             const length = Math.hypot(...toward) || 1;
             start = [at[0] + (toward[0] / length) * 1.5, at[1] + (toward[1] / length) * 1.5];
         }
-        this.walk.position.set(start[0], EYE_HEIGHT, start[1]);
+        this.walk.position.set(start[0], this.elevation + EYE_HEIGHT, start[1]);
         this.walk.yaw = Math.atan2(-(middle[0] - start[0]), -(middle[1] - start[1]));
         this.walk.pitch = 0;
     }
@@ -518,7 +565,8 @@ export class WarehouseScene {
         if (this.mode === "walk") {
             return;
         }
-        const size = this.mapSize ? Math.max(...this.mapSize) : 40;
+        const box = this.frameBox;
+        const size = box ? Math.max(box.width, box.height, box.top) : 40;
         this.orbit.radius = Math.max(3, Math.min(size * 3, this.orbit.radius * (ev.deltaY > 0 ? 1.1 : 0.9)));
     }
 

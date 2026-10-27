@@ -1,6 +1,7 @@
 import { Component, onMounted, onPatched, onWillStart, onWillUnmount, useRef, useState } from "@odoo/owl";
 import { loadJS } from "@web/core/assets";
 import { browser } from "@web/core/browser/browser";
+import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
@@ -15,6 +16,9 @@ const HEAT_STEPS = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184
 const EMPTY_FILL = "#f0efec";
 const STORAGE_KEY = "tricasia_stock_map.warehouse_id";
 const VIEW_KEY = "tricasia_stock_map.view";
+const FLOOR_KEY = "tricasia_stock_map.floor_id";
+// Metres from one floor to the next when all floors are shown
+const FLOOR_GAP = 5;
 // Loaded only when the 3D view opens
 const THREE_URL = "/tricasia_stock_map/static/lib/three/three.min.js";
 
@@ -37,6 +41,7 @@ export class TricasiaStockMap extends Component {
     setup() {
         this.orm = useService("orm");
         this.action = useService("action");
+        this.dialog = useService("dialog");
         this.notification = useService("notification");
         this.svgRef = useRef("svg");
         this.canvasRef = useRef("canvas");
@@ -55,9 +60,10 @@ export class TricasiaStockMap extends Component {
             canEdit: false,
             locations: [],
             map: false,
+            floors: [],
+            floorKey: null,
+            allFloors: false,
             shapes: [],
-            width: 0,
-            height: 0,
             heat: {},
             productSearch: "",
             categId: false,
@@ -109,11 +115,49 @@ export class TricasiaStockMap extends Component {
         await this.loadHeat();
     }
 
-    setMap(map) {
+    /**
+     * @param {Object|false} map {id, floors: [{id, name, width, height, shapes}]}
+     * @param {number} [floorIndex] the floor to show, else the remembered one, else the first
+     */
+    setMap(map, floorIndex = null) {
         this.state.map = map;
-        this.state.width = map ? map.width : 0;
-        this.state.height = map ? map.height : 0;
-        this.state.shapes = map ? map.shapes.map((shape) => this.fromServer(shape)) : [];
+        const floors = map ? map.floors.map((floor) => ({
+            key: nextKey++,
+            id: floor.id,
+            name: floor.name,
+            width: floor.width,
+            height: floor.height,
+        })) : [];
+        this.state.floors = floors;
+        this.state.shapes = map
+            ? map.floors.flatMap((floor, index) => floor.shapes.map((shape) => this.fromServer(shape, floors[index].key)))
+            : [];
+        let floor = floorIndex !== null ? floors[Math.min(floorIndex, floors.length - 1)] : null;
+        if (!floor) {
+            let floorId = false;
+            try {
+                floorId = parseInt(browser.localStorage.getItem(FLOOR_KEY)) || false;
+            } catch {
+                // Start on the first floor
+            }
+            floor = floors.find((f) => f.id === floorId) || floors[0];
+        }
+        this.state.floorKey = floor ? floor.key : null;
+        if (floors.length < 2) {
+            this.state.allFloors = false;
+        }
+    }
+
+    get floor() {
+        return this.state.floors.find((floor) => floor.key === this.state.floorKey);
+    }
+
+    get floorIndex() {
+        return this.state.floors.findIndex((floor) => floor.key === this.state.floorKey);
+    }
+
+    shapesOf(floorKey = this.state.floorKey) {
+        return this.state.shapes.filter((shape) => shape.floorKey === floorKey);
     }
 
     async loadHeat() {
@@ -128,9 +172,10 @@ export class TricasiaStockMap extends Component {
         ]);
     }
 
-    fromServer(shape) {
+    fromServer(shape, floorKey) {
         return {
             key: nextKey++,
+            floorKey,
             id: shape.id || false,
             kind: shape.kind,
             label: shape.label || "",
@@ -190,7 +235,92 @@ export class TricasiaStockMap extends Component {
     onToggleWalk() {
         this.state.walking = !this.state.walking;
         this.state.hover = null;
+        // One walks on a single floor
+        if (this.state.walking) {
+            this.state.allFloors = false;
+        }
         this.scene3d?.setMode(this.state.walking ? "walk" : "orbit");
+    }
+
+    onToggleAllFloors() {
+        this.state.allFloors = !this.state.allFloors;
+        this.state.hover = null;
+    }
+
+    // Floors
+
+    onSelectFloor(floor) {
+        this.state.floorKey = floor.key;
+        this.state.selectedKey = null;
+        this.state.hover = null;
+        if (floor.id) {
+            try {
+                browser.localStorage.setItem(FLOOR_KEY, String(floor.id));
+            } catch {
+                // Only a convenience
+            }
+        }
+    }
+
+    /**
+     * @param {boolean} copyWalls start from the walls and doors of the selected floor, the shell of the building
+     */
+    onAddFloor(copyWalls) {
+        const base = this.floor;
+        const floor = {
+            key: nextKey++,
+            id: false,
+            name: _t("Floor %s", this.state.floors.length + 1),
+            width: base.width,
+            height: base.height,
+        };
+        this.state.floors.push(floor);
+        if (copyWalls) {
+            for (const shape of this.shapesOf(base.key).filter((s) => ["wall", "door"].includes(s.kind))) {
+                this.state.shapes.push({ ...shape, key: nextKey++, id: false, floorKey: floor.key });
+            }
+        }
+        this.onSelectFloor(floor);
+    }
+
+    onFloorName(ev) {
+        this.floor.name = ev.target.value.trim() || this.floor.name;
+    }
+
+    onMoveFloor(delta) {
+        const floors = this.state.floors;
+        const index = this.floorIndex;
+        const target = index + delta;
+        if (target < 0 || target >= floors.length) {
+            return;
+        }
+        [floors[index], floors[target]] = [floors[target], floors[index]];
+    }
+
+    onDeleteFloor() {
+        if (this.state.floors.length < 2) {
+            return;
+        }
+        const remove = () => {
+            const index = this.floorIndex;
+            const key = this.state.floorKey;
+            this.state.shapes = this.state.shapes.filter((shape) => shape.floorKey !== key);
+            this.state.floors.splice(index, 1);
+            this.onSelectFloor(this.state.floors[Math.max(0, index - 1)]);
+        };
+        const count = this.shapesOf().length;
+        if (!count) {
+            remove();
+            return;
+        }
+        this.dialog.add(ConfirmationDialog, {
+            body: _t("Delete the floor %(floor)s and its %(count)s shape(s)? It is gone once the map is saved.", {
+                floor: this.floor.name,
+                count,
+            }),
+            confirm: remove,
+            cancel: () => {},
+        });
     }
 
     onResetView() {
@@ -207,13 +337,18 @@ export class TricasiaStockMap extends Component {
     }
 
     async onSave() {
+        const floorIndex = this.floorIndex;
         const map = await this.orm.call("tricasia.stock.map", "save_map", [
             this.state.map.id,
-            this.state.shapes.map((shape) => this.toServer(shape)),
-            this.state.width,
-            this.state.height,
+            this.state.floors.map((floor) => ({
+                id: floor.id,
+                name: floor.name,
+                width: floor.width,
+                height: floor.height,
+                shapes: this.shapesOf(floor.key).map((shape) => this.toServer(shape)),
+            })),
         ]);
-        this.setMap(map);
+        this.setMap(map, floorIndex);
         this.state.editing = false;
         this.state.selectedKey = null;
         await this.loadHeat();
@@ -227,7 +362,7 @@ export class TricasiaStockMap extends Component {
     // Drawing
 
     get sortedShapes() {
-        return [...this.state.shapes].sort((a, b) => KINDS[a.kind].order - KINDS[b.kind].order);
+        return this.shapesOf().sort((a, b) => KINDS[a.kind].order - KINDS[b.kind].order);
     }
 
     get selected() {
@@ -244,15 +379,18 @@ export class TricasiaStockMap extends Component {
     }
 
     clamp(shape) {
-        shape.w = Math.max(1, Math.min(shape.w, this.state.width));
-        shape.h = Math.max(1, Math.min(shape.h, this.state.height));
-        shape.x = Math.max(0, Math.min(shape.x, this.state.width - shape.w));
-        shape.y = Math.max(0, Math.min(shape.y, this.state.height - shape.h));
+        const { width, height } = this.state.floors.find((floor) => floor.key === shape.floorKey);
+        shape.w = Math.max(1, Math.min(shape.w, width));
+        shape.h = Math.max(1, Math.min(shape.h, height));
+        shape.x = Math.max(0, Math.min(shape.x, width - shape.w));
+        shape.y = Math.max(0, Math.min(shape.y, height - shape.h));
     }
 
     addShape(kind, x = 0, y = 0) {
         const [w, h] = KINDS[kind].size;
-        const shape = { key: nextKey++, id: false, kind, label: "", locationId: false, x, y, w, h };
+        const shape = {
+            key: nextKey++, floorKey: this.state.floorKey, id: false, kind, label: "", locationId: false, x, y, w, h,
+        };
         this.clamp(shape);
         this.state.shapes.push(shape);
         this.state.selectedKey = shape.key;
@@ -302,8 +440,8 @@ export class TricasiaStockMap extends Component {
             shape.x = orig.x + dx;
             shape.y = orig.y + dy;
         } else {
-            shape.w = Math.min(orig.w + dx, this.state.width - orig.x);
-            shape.h = Math.min(orig.h + dy, this.state.height - orig.y);
+            shape.w = Math.min(orig.w + dx, this.floor.width - orig.x);
+            shape.h = Math.min(orig.h + dy, this.floor.height - orig.y);
         }
         this.clamp(shape);
     }
@@ -372,9 +510,8 @@ export class TricasiaStockMap extends Component {
     }
 
     onMapSize(field, ev) {
-        const value = Math.max(5, Math.min(parseInt(ev.target.value) || 0, 200));
-        this.state[field] = value;
-        this.state.shapes.forEach((shape) => this.clamp(shape));
+        this.floor[field] = Math.max(5, Math.min(parseInt(ev.target.value) || 0, 200));
+        this.shapesOf().forEach((shape) => this.clamp(shape));
     }
 
     // Heat
@@ -389,9 +526,10 @@ export class TricasiaStockMap extends Component {
 
     /**
      * Racks, pallets and zones each have their own scale: a zone adds up its racks and would pale them all.
+     * Each floor has its own scale too: a mezzanine of spare parts stays readable next to a full ground floor.
      */
-    heatMaxOf(kind) {
-        const values = this.state.shapes
+    heatMaxOf(kind, floorKey = this.state.floorKey) {
+        const values = this.shapesOf(floorKey)
             .filter((shape) => shape.kind === kind && this.heatOf(shape))
             .map((shape) => this.heatOf(shape).qty);
         return Math.max(0, ...values);
@@ -404,7 +542,7 @@ export class TricasiaStockMap extends Component {
     heatStep(shape) {
         const heat = this.heatOf(shape);
         const value = heat ? heat.qty : 0;
-        const max = this.heatMaxOf(shape.kind);
+        const max = this.heatMaxOf(shape.kind, shape.floorKey);
         if (!heat || value <= 0 || !max) {
             return -1;
         }
@@ -474,10 +612,10 @@ export class TricasiaStockMap extends Component {
     }
 
     /**
-     * The levels of all racks share one scale: a level is a shelf, whatever its rack.
+     * The levels of all racks of a floor share one scale: a level is a shelf, whatever its rack.
      */
-    get levelMax() {
-        const values = this.state.shapes
+    levelMaxOf(floorKey = this.state.floorKey) {
+        const values = this.shapesOf(floorKey)
             .filter((shape) => shape.kind === "rack" && shape.locationId)
             .flatMap((shape) => this.rackLevels(shape).map((level) => level.qty));
         return Math.max(0, ...values);
@@ -497,10 +635,26 @@ export class TricasiaStockMap extends Component {
         return value > 0 && max ? 0.15 + 0.85 * Math.min(1, value / max) : 0;
     }
 
+    /**
+     * The selected floor, or the whole building stacked from the ground floor up.
+     */
     get sceneMap() {
-        const levelMax = this.levelMax;
-        const palletMax = this.heatMaxOf("pallet");
-        const items = this.state.shapes.map((shape) => {
+        const floors = this.state.allFloors ? this.state.floors : [this.floor];
+        return {
+            floors: floors.map((floor) => ({
+                elevation: this.state.allFloors ? this.state.floors.indexOf(floor) * FLOOR_GAP : 0,
+                width: floor.width,
+                height: floor.height,
+                active: floor.key === this.state.floorKey,
+                items: this.sceneItems(floor.key),
+            })),
+        };
+    }
+
+    sceneItems(floorKey) {
+        const levelMax = this.levelMaxOf(floorKey);
+        const palletMax = this.heatMaxOf("pallet", floorKey);
+        return this.shapesOf(floorKey).map((shape) => {
             const linked = KINDS[shape.kind].stock && shape.locationId;
             const item = {
                 key: shape.key,
@@ -531,7 +685,6 @@ export class TricasiaStockMap extends Component {
             }
             return item;
         });
-        return { width: this.state.width, height: this.state.height, items };
     }
 
     onSceneHover(hit) {
@@ -581,7 +734,7 @@ export class TricasiaStockMap extends Component {
     }
 
     get legendMax() {
-        return this.state.view === "3d" ? this.levelMax || this.heatMaxOf("pallet") : this.heatMax;
+        return this.state.view === "3d" ? this.levelMaxOf() || this.heatMaxOf("pallet") : this.heatMax;
     }
 
     shapeTextClass(shape) {
@@ -651,14 +804,24 @@ export class TricasiaStockMap extends Component {
     }
 
     get tableRows() {
-        return this.state.shapes
+        return this.shapesOf()
             .filter((shape) => shape.id && shape.locationId)
             .map((shape) => ({ shape, heat: this.heatOrZero(shape) }))
             .sort((a, b) => b.heat.qty - a.heat.qty);
     }
 
     get unlinkedCount() {
-        return this.state.shapes.filter((shape) => KINDS[shape.kind].stock && !shape.locationId).length;
+        return this.shapesOf().filter((shape) => KINDS[shape.kind].stock && !shape.locationId).length;
+    }
+
+    /**
+     * The stock of each floor, for the floor tabs: what is where at a glance.
+     */
+    floorQty(floor) {
+        // Zones overlap the racks and pallets they hold: count only racks and pallets, or zones alone
+        const shapes = this.shapesOf(floor.key).filter((shape) => this.heatOf(shape));
+        const holders = shapes.filter((shape) => shape.kind !== "zone");
+        return (holders.length ? holders : shapes).reduce((sum, shape) => sum + this.heatOf(shape).qty, 0);
     }
 }
 
